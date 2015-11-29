@@ -59,9 +59,9 @@ class SportTypeDbHandler {
     }
  
     // Updating SportType
-    public function updateSportType($id, $name) {
-        $stmt = $this->conn->prepare("UPDATE sportTypes t SET t.name = ? WHERE t.id = ?");
-        $stmt->bind_param("si", $name, $id);
+    public function updateSportType($sportType) {
+        $stmt = $this->conn->prepare("UPDATE sportTypes SET name=?, comment=? WHERE id=?");
+        $stmt->bind_param("ssi", $sportType->name, $sportType->comment, $sportType->id);
         $stmt->execute();
         $num_affected_rows = $stmt->affected_rows;
         $stmt->close();

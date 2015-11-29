@@ -160,8 +160,14 @@ $app->get('/sportTypes', 'authenticate', 'getAllSportTypes');
 // Find a Sport type by id
 $app->get('/sportType/:id', 'authenticate', 'getSportTypeById');
 
-// Updating sport type 
+// Updating all sport types included in payload
+$app->put('/sportTypes', 'authenticate', 'updateSportTypes');
+
+// Updating sport type by id
 $app->put('/sportType/:id', 'authenticate', 'updateSportTypeById');
+
+// Deleting a set of sport types
+$app->delete('/sportTypes', 'authenticate', 'deleteSportTypes');
 
 // Deleting sporttype
 $app->delete('/sportType/:id', 'authenticate', 'deleteSportTypeById');
@@ -348,7 +354,7 @@ function getAllSportTypes() {
                 $tmp = array();
                 $tmp["id"] = $sportType["id"];
                 $tmp["name"] = $sportType["name"];
-                //$tmp["coment"] = $sportType["coment"];
+                $tmp["comment"] = $sportType["comment"];
                 array_push($response["data"], $tmp);
             }
  			$response["count"] = count($response["data"]);
@@ -375,6 +381,32 @@ function getSportTypeById($id) {
             }
 }
         
+function updateSportTypes(){
+	$request_body = file_get_contents('php://input');
+	$jsonData = json_decode($request_body);
+	$result = false;
+	$itemsUpdated = 0;
+	
+	$db = new SportTypeDbHandler();
+	if (count($jsonData->data)==1){
+		$result = $db->updateSportType($jsonData->data);
+		$itemsUpdated = 1;
+	} else if (count($jsonData->data)>1) {
+		foreach ($jsonData->data as $sportType) {
+			$result = $db->updateSportType($sportType);
+			if ($result) {
+				$itemsUpdated++;
+			}	
+		}
+	}
+
+	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
+	$response["message"] = "Total sport types updated: ".$itemsUpdated;
+	$response["data"]=$jsonData->data;
+
+	echoResponse(201, $response);
+}
+
 function updateSportTypeById ($id) {
             
 	verifyRequiredParams(array('name'));
@@ -383,12 +415,15 @@ function updateSportTypeById ($id) {
  
     $db = new SportTypeDbHandler();        
     $response = array();
-       
-    $result = $db->updateSportType($id, $name);
+    $user = array();
+    $user["id"]=$id;
+    $user["name"]=$name;
+    
+    $result = $db->updateSportType($user);
            
     if ($result) {           
     	$response["error"] = false;
-        $response["message"] = "Sport type with id: ". $id ." updated successfully";
+        $response["message"] = "Sport type with id: ". $id ." was updated successfully";
     } else {
     	$response["error"] = true;
         $response["message"] = "Sport type with id: ". $id ."was NOT updated because it was not found. Please try again!";
@@ -397,6 +432,19 @@ function updateSportTypeById ($id) {
     echoResponse(200, $response);
 }
         
+function deleteSportTypes () {
+	$request_body = file_get_contents('php://input');
+	$jsonData = json_decode($request_body);
+	$result = false;
+	
+	$response["error"] = $result;
+	$itemsDeleted = count($jsonData);
+	$response["count"]= $itemsDeleted;
+	$response["message"] = "Total sport types deleted: ".$itemsDeleted;
+	$response["data"]=$jsonData->data;
+	echoResponse(201, $response);
+}
+
 function deleteSportTypeById ($id) {
  
 	$db = new SportTypeDbHandler();
