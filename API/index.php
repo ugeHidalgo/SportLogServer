@@ -130,29 +130,7 @@ $app->get('/users', 'authenticate', 'getUsers');
 // ------ Sport Type services ------------------------------------------
 
 // Creating new sporType in db
-$app->post('/sportType', 'authenticate', function() use ($app) {
-	// check for required params
-	verifyRequiredParams(array('name'));
-
-	$response = array();
-	$name = $app->request->post('name');
-
-	global $user_id;
-	$db = new SportTypeDbHandler();
-
-	// creating new task
-	$id = $db->createSportType($name);
-
-	if ($id != NULL) {
-		$response["error"] = false;
-		$response["message"] = "Sport type created successfully";
-		$response["id"] = $id;
-	} else {
-		$response["error"] = true;
-		$response["message"] = "Failed to create sport type. Please try again";
-	}
-	echoResponse(201, $response);
-});
+$app->post('/sportTypes', 'authenticate', 'createSportTypes');
 
 // Listing all sport types
 $app->get('/sportTypes', 'authenticate', 'getAllSportTypes');
@@ -342,6 +320,32 @@ function getUsers() {
 
 
 // ------ SportTypes auxiliar functions ----------------------------------
+function createSportTypes(){
+	$request_body = file_get_contents('php://input');
+	$jsonData = json_decode($request_body);
+	$itemsCreated = 0;
+
+	$db = new SportTypeDbHandler();
+	if (count($jsonData->data)==1){
+		$id = $db->createSportType($jsonData->data);
+		if ($id != NULL){
+			$itemsCreated = 1;
+		}
+	} else if (count($jsonData->data)>1) {
+		foreach ($jsonData->data as $sportType) {
+			$id = $db->createSportType($sportType);
+			if ($id != NULL) {
+				$itemsCreated++;
+			}	
+		}
+	}
+
+	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
+	$response["message"] = "Total sport types created: ".$itemsCreated;
+	$response["data"]=$jsonData->data;
+	echoResponse(201, $response);
+}
+
 function getAllSportTypes() {
             global $user_id;
             $response = array();
@@ -390,7 +394,9 @@ function updateSportTypes(){
 	$db = new SportTypeDbHandler();
 	if (count($jsonData->data)==1){
 		$result = $db->updateSportType($jsonData->data);
-		$itemsUpdated = 1;
+		if ($result) {
+				$itemsUpdated = 1;
+			}	
 	} else if (count($jsonData->data)>1) {
 		foreach ($jsonData->data as $sportType) {
 			$result = $db->updateSportType($sportType);
@@ -436,12 +442,27 @@ function deleteSportTypes () {
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
+	$itemsUpdated = 0;
 	
-	$response["error"] = $result;
-	$itemsDeleted = count($jsonData);
-	$response["count"]= $itemsDeleted;
+	$db = new SportTypeDbHandler();
+	if (count($jsonData->data)==1){
+		$result = $db->deleteSportType($jsonData->data->id);
+		if ($result) {
+				$itemsDeleted = 1;
+			}
+	} else if (count($jsonData->data)>1) {
+		foreach ($jsonData->data as $sportType) {
+			$result = $db->deleteSportType($sportType->id);
+			if ($result) {
+				$itemsDeleted++;
+			}	
+		}
+	}
+
+	$response["error"] = $itemsDeleted==count($jsonData->data) ? false : true;
 	$response["message"] = "Total sport types deleted: ".$itemsDeleted;
 	$response["data"]=$jsonData->data;
+
 	echoResponse(201, $response);
 }
 

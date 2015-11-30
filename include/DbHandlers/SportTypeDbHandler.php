@@ -15,9 +15,9 @@ class SportTypeDbHandler {
     }
  
     // Creating new sportType
-    public function createSportType($name) {        
-        $stmt = $this->conn->prepare("INSERT INTO sportTypes(name) VALUES(?)");
-        $stmt->bind_param("s", $name);
+    public function createSportType($sportType) {        
+        $stmt = $this->conn->prepare("INSERT INTO sportTypes(name,comment) VALUES(?,?)");
+        $stmt->bind_param("ss", $sportType->name, $sportType->comment);
         $result = $stmt->execute();
         $stmt->close();
         
