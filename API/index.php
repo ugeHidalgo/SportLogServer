@@ -179,6 +179,9 @@ $app->post('/activity', 'authenticate', function() use ($app) {
 // Listing all activities
 $app->get('/activities', 'authenticate', 'getAllActivities');
 
+// Deleting a set of activities
+$app->delete('/activities', 'authenticate', 'deleteActivities');
+
 // ------ RememberMe services ------------------------------------------
 
 // Creating new remember-me field in db
@@ -501,6 +504,34 @@ function getAllActivities() {
         array_push($response["data"], $tmp);
     } 
 	echoResponse(200, $response);
+}
+
+function deleteActivities () {
+	$request_body = file_get_contents('php://input');
+	$jsonData = json_decode($request_body);
+	$result = false;
+	$itemsUpdated = 0;
+
+	$db = new ActivityDbHandler();
+	if (count($jsonData->data)==1){
+		$result = $db->deleteActivity($jsonData->data->id);
+		if ($result) {
+			$itemsDeleted = 1;
+		}
+	} else if (count($jsonData->data)>1) {
+		foreach ($jsonData->data as $activity) {
+			$result = $db->deleteActivity($activity->id);
+			if ($result) {
+				$itemsDeleted++;
+			}
+		}
+	}
+
+	$response["error"] = $itemsDeleted==count($jsonData->data) ? false : true;
+	$response["message"] = "Total activities deleted: ".$itemsDeleted;
+	$response["data"]=$jsonData->data;
+
+	echoResponse(201, $response);
 }
 
 

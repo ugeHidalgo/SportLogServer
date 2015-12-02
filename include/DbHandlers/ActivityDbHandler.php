@@ -13,7 +13,7 @@ class ActivityDbHandler {
 		$this->conn = $db->connect();
 	}
 	
-	// Creating new sportType
+	// Creating new activity
 	public function createActivity($name, $sportTypeId) {
 		$stmt = $this->conn->prepare("INSERT INTO activities(name,sportType_id) VALUES(?,?)");
 		$stmt->bind_param("ss", $name, $sportTypeId);
@@ -38,5 +38,15 @@ class ActivityDbHandler {
 		$activities = $stmt->get_result();
 		$stmt->close();
 		return $activities;
+	}
+	
+	// Deleting an activity
+	public function deleteActivity($id) {
+		$stmt = $this->conn->prepare("DELETE FROM activities WHERE id = ?");
+		$stmt->bind_param("i", $id);
+		$stmt->execute();
+		$num_affected_rows = $stmt->affected_rows;
+		$stmt->close();
+		return $num_affected_rows > 0;
 	}
 }
