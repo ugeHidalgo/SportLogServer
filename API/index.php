@@ -129,7 +129,7 @@ $app->get('/users', 'authenticate', 'getUsers');
 
 // ------ Sport Type services ------------------------------------------
 
-// Creating new sporType in db
+// Creating new sporTypes in db
 $app->post('/sportTypes', 'authenticate', 'createSportTypes');
 
 // Listing all sport types
@@ -152,32 +152,13 @@ $app->delete('/sportType/:id', 'authenticate', 'deleteSportTypeById');
 
 // ------ Activity services ------------------------------------------
 // Creating activity in db
-$app->post('/activity', 'authenticate', function() use ($app) {
-	// check for required params
-	verifyRequiredParams(array('name','sportType_id'));
-
-	$response = array();
-	$name = $app->request->post('name');
-	$sportTypeId = $app->request->post('sportType_id');
-
-	global $user_id;
-	$db = new ActivityDbHandler();
-
-	// creating new task
-	$id = $db->createActivity ($name, $sportTypeId);
-	if ($id != NULL) {
-		$response["error"] = false;
-		$response["message"] = "Activity created successfully";
-		$response["id"] = $id;
-	} else {
-		$response["error"] = true;
-		$response["message"] = "Failed to create activity. Please try again";
-	}
-	echoResponse(201, $response);
-});
+$app->post('/activities', 'authenticate', 'createActivities');
 
 // Listing all activities
 $app->get('/activities', 'authenticate', 'getAllActivities');
+
+// Updating all activities included in payload
+$app->put('/activities', 'authenticate', 'updateActivities');
 
 // Deleting a set of activities
 $app->delete('/activities', 'authenticate', 'deleteActivities');
@@ -488,6 +469,32 @@ function deleteSportTypeById ($id) {
 
 
 // ------ Activities auxiliar functions ----------------------------------
+function createActivities(){
+	$request_body = file_get_contents('php://input');
+	$jsonData = json_decode($request_body);
+	$itemsCreated = 0;
+
+	$db = new ActivityDbHandler();
+	if (count($jsonData->data)==1){
+		$id = $db->createActivity($jsonData->data);
+		if ($id != NULL){
+			$itemsCreated = 1;
+		}
+	} else if (count($jsonData->data)>1) {
+		foreach ($jsonData->data as $activity) {
+			$id = $db->createActivity($activity);
+			if ($id != NULL) {
+				$itemsCreated++;
+			}
+		}
+	}
+
+	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
+	$response["message"] = "Total activities created: ".$itemsCreated;
+	$response["data"]=$jsonData->data;
+	echoResponse(201, $response);
+}
+
 function getAllActivities() {
 	global $user_id;
 	$response = array();
@@ -504,6 +511,34 @@ function getAllActivities() {
         array_push($response["data"], $tmp);
     } 
 	echoResponse(200, $response);
+}
+
+function updateActivities(){
+	$request_body = file_get_contents('php://input');
+	$jsonData = json_decode($request_body);
+	$result = false;
+	$itemsUpdated = 0;
+
+	$db = new ActivityDbHandler();
+	if (count($jsonData->data)==1){
+		$result = $db->updateActivity($jsonData->data);
+		if ($result) {
+			$itemsUpdated = 1;
+		}
+	} else if (count($jsonData->data)>1) {
+		foreach ($jsonData->data as $ativity) {
+			$result = $db->updateActivity($ativity);
+			if ($result) {
+				$itemsUpdated++;
+			}
+		}
+	}
+
+	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
+	$response["message"] = "Total activities updated: ".$itemsUpdated;
+	$response["data"]=$jsonData->data;
+
+	echoResponse(201, $response);
 }
 
 function deleteActivities () {
@@ -535,7 +570,6 @@ function deleteActivities () {
 }
 
 
-// ------ Remember me auxiliar functions ----------------------------------
 // ------ Remember me auxiliar functions ----------------------------------
 function createNewRememberMeField () {
 	

@@ -14,9 +14,9 @@ class ActivityDbHandler {
 	}
 	
 	// Creating new activity
-	public function createActivity($name, $sportTypeId) {
+	public function createActivity($activity) {
 		$stmt = $this->conn->prepare("INSERT INTO activities(name,sportType_id) VALUES(?,?)");
-		$stmt->bind_param("ss", $name, $sportTypeId);
+		$stmt->bind_param("ss", $activity->name, $activity->sportType_id);
 		$result = $stmt->execute();
 		$stmt->close();
 	
@@ -38,6 +38,16 @@ class ActivityDbHandler {
 		$activities = $stmt->get_result();
 		$stmt->close();
 		return $activities;
+	}
+	
+	// Updating an activity
+	public function updateActivity($activity) {
+		$stmt = $this->conn->prepare("UPDATE activities SET name=?, sportType_id=? WHERE id=?");
+		$stmt->bind_param("ssi", $activity->name, $activity->sportType_id, $activity->id);
+		$stmt->execute();
+		$num_affected_rows = $stmt->affected_rows;
+		$stmt->close();
+		return $num_affected_rows > 0;
 	}
 	
 	// Deleting an activity
