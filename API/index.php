@@ -3,8 +3,6 @@
 require_once '../include/DbHandlers/UserDbHandler.php';
 require_once '../include/DbHandlers/SportTypeDbHandler.php';
 require_once '../include/DbHandlers/ActivityDbHandler.php';
-require_once '../include/DbHandlers/MaterialDbHandler.php';
-//require_once 'sportTypeInterface.php';
 require_once '../include/DbHandlers/RememberMeDbHandler.php';
 
 
@@ -22,7 +20,6 @@ $user_id = NULL;
 // ---------------------------------------------------------------------
 
 // ------ User services ------------------------------------------------
-
 // User Registration
 $app->post('/register', function() use ($app){
             // check for required params
@@ -164,124 +161,6 @@ $app->put('/activities', 'authenticate', 'updateActivities');
 // Deleting a set of activities
 $app->delete('/activities', 'authenticate', 'deleteActivities');
 
-// ------ Materials services ------------------------------------------
-// Creating a new material in db
-$app->post('/materials', 'authenticate', 'createMaterials');
-
-function createMaterials(){
-	$request_body = file_get_contents('php://input');
-	$jsonData = json_decode($request_body);
-	$itemsCreated = 0;
-
-	$db = new MaterialDbHandler();
-	if (count($jsonData->data)==1){
-		$id = $db->createMaterial($jsonData->data);
-		if ($id != NULL){
-			$itemsCreated = 1;
-		}
-	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$id = $db->createMaterial($material);
-			if ($id != NULL) {
-				$itemsCreated++;
-			}
-		}
-	}
-
-	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials created: ".$itemsCreated;
-	$response["data"]=$jsonData->data;
-	echoResponse(201, $response);
-}
-
-// Listing all materials
-$app->get('/materials', 'authenticate', 'getAllMaterials');
-
-function getAllMaterials() {
-	global $user_id;
-	$response = array();
-	$db = new MaterialDbHandler();
-	$result = $db->getMaterials();
-
-	$response["error"] = false;
-	$response["data"] = array();
-	while ($material = $result->fetch_assoc()) {
-		$tmp = array();
-		$tmp["id"] = $material["id"];
-		$tmp["alias"] = $material["alias"];
-		$tmp["name"] = $material["name"];
-		$tmp["brand"] = $material["brand"];
-		$tmp["parent_id"] = $material["parent_id"];
-		$tmp["total_time"] = $material["total_time"];
-		$tmp["total_distance"] = $material["total_distance"];
-		$tmp["status"] = $material["status"];
-		$tmp["created_at"] = $material["created_at"];
-		$tmp["purchase_date"] = $material["purchase_date"];
-		$tmp["max_time"] = $material["max_time"];
-		$tmp["max_distance"] = $material["max_distance"];
-		$tmp["comment"] = $material["comment"];
-		$tmp["initial_time"] = $material["initial_time"];
-		$tmp["initial_distance"] = $material["initial_distance"];
-		array_push($response["data"], $tmp);
-	}
-	echoResponse(200, $response);
-}
-
-// Updating all materials included in payload
-$app->put('/materials', 'authenticate', 'updateMaterials');
-
-function updateMaterials(){
-	$request_body = file_get_contents('php://input');
-	$jsonData = json_decode($request_body);
-	$result = false;
-	$itemsUpdated = 0;
-
-	$db = new MaterialDbHandler();
-	if (count($jsonData->data)==1){
-		$result = $db->updateMaterial($jsonData->data);
-		if ($result) {
-			$itemsUpdated = 1;
-		}
-	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->updateMaterial($material);
-			if ($result) {
-				$itemsUpdated++;
-			}
-		}
-	}
-
-	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials updated: ".$itemsUpdated;
-	$response["data"]=$jsonData->data;
-
-	echoResponse(201, $response);
-}
-
-// Deleting a set of materials
-$app->delete('/materials', 'authenticate', 'deleteMaterials');
-
-function deleteMaterials () {
-	$request_body = file_get_contents('php://input');
-	$jsonData = json_decode($request_body);
-	$result = false;
-	$itemsDeleted = 0;
-
-	$db = new MaterialDbHandler();
-	if (count($jsonData->data)==1){
-		$result = $db->deleteMaterial($jsonData->data->id);
-		if ($result) {
-			$itemsDeleted = 1;
-		}
-	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->deleteMaterial($material->id);
-			if ($result) {
-				$itemsDeleted++;
-			}
-		}
-	}
-}
 
 // ------ RememberMe services ------------------------------------------
 

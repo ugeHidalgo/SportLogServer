@@ -1,7 +1,0 @@
-{ id=4
-error: false
-name: "Eugenio Hidalgo"
-email: "ugehidalgo@hotmail.com"
-apiKey: "5ac945c9759ad5c30e9fdc23387dee16"
-createdAt: "2015-10-17 19:33:31"
-}
