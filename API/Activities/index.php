@@ -1,7 +1,8 @@
 <?php
 
 require_once '../../include/DbHandlers/UserDbHandler.php';
-require_once '../../include/DbHandlers/MaterialDbHandler.php';
+require_once '../../include/DbHandlers/ActivityDbHandler.php';
+
 require '../../libs/Slim/Slim.php';
  
 \Slim\Slim::registerAutoloader();
@@ -15,17 +16,17 @@ $user_id = NULL;
 // ------ web services -------------------------------------------------
 // ---------------------------------------------------------------------
 
-// Creating a new material in db
-$app->post('/materials', 'authenticate', 'createMaterials');
+// Creating activity in db
+$app->post('/activities', 'authenticate', 'createActivities');
 
-// Listing all materials
-$app->get('/materials', 'authenticate', 'getAllMaterials');
+// Listing all activities
+$app->get('/activities', 'authenticate', 'getAllActivities');
 
-// Updating all materials included in payload
-$app->put('/materials', 'authenticate', 'updateMaterials');
+// Updating all activities included in payload
+$app->put('/activities', 'authenticate', 'updateActivities');
 
-// Deleting a set of materials
-$app->delete('/materials', 'authenticate', 'deleteMaterials');
+// Deleting a set of activities
+$app->delete('/activities', 'authenticate', 'deleteActivities');
 
 
 // ---------------------------------------------------------------------
@@ -122,21 +123,21 @@ function authenticate(\Slim\Route $route) {
 }
 
 
-// ------ Materials auxiliar functions ----------------------------------
-function createMaterials(){
+// ------ Activities auxiliar functions ----------------------------------
+function createActivities(){
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$itemsCreated = 0;
 
-	$db = new MaterialDbHandler();
+	$db = new ActivityDbHandler();
 	if (count($jsonData->data)==1){
-		$id = $db->createMaterial($jsonData->data);
+		$id = $db->createActivity($jsonData->data);
 		if ($id != NULL){
 			$itemsCreated = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$id = $db->createMaterial($material);
+		foreach ($jsonData->data as $activity) {
+			$id = $db->createActivity($activity);
 			if ($id != NULL) {
 				$itemsCreated++;
 			}
@@ -144,56 +145,44 @@ function createMaterials(){
 	}
 
 	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials created: ".$itemsCreated;
+	$response["message"] = "Total activities created: ".$itemsCreated;
 	$response["data"]=$jsonData->data;
 	echoResponse(201, $response);
 }
 
-function getAllMaterials() {
+function getAllActivities() {
 	global $user_id;
 	$response = array();
-	$db = new MaterialDbHandler();
-	$result = $db->getMaterials();
-
+	$db = new ActivityDbHandler();
+	$result = $db->getActivities();
+	
 	$response["error"] = false;
 	$response["data"] = array();
-	while ($material = $result->fetch_assoc()) {
-		$tmp = array();
-		$tmp["id"] = $material["id"];
-		$tmp["alias"] = $material["alias"];
-		$tmp["name"] = $material["name"];
-		$tmp["brand"] = $material["brand"];
-		$tmp["parent_id"] = $material["parent_id"];
-		$tmp["total_time"] = $material["total_time"];
-		$tmp["total_distance"] = $material["total_distance"];
-		$tmp["status"] = $material["status"];
-		$tmp["created_at"] = $material["created_at"];
-		$tmp["purchase_date"] = $material["purchase_date"];
-		$tmp["max_time"] = $material["max_time"];
-		$tmp["max_distance"] = $material["max_distance"];
-		$tmp["comment"] = $material["comment"];
-		$tmp["initial_time"] = $material["initial_time"];
-		$tmp["initial_distance"] = $material["initial_distance"];
-		array_push($response["data"], $tmp);
-	}
+    while ($activity = $result->fetch_assoc()) {
+    	$tmp = array();
+        $tmp["id"] = $activity["id"];
+        $tmp["name"] = $activity["name"];
+        $tmp["sportType_id"] = $activity["sportType_id"];
+        array_push($response["data"], $tmp);
+    } 
 	echoResponse(200, $response);
 }
 
-function updateMaterials(){
+function updateActivities(){
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsUpdated = 0;
 
-	$db = new MaterialDbHandler();
+	$db = new ActivityDbHandler();
 	if (count($jsonData->data)==1){
-		$result = $db->updateMaterial($jsonData->data);
+		$result = $db->updateActivity($jsonData->data);
 		if ($result) {
 			$itemsUpdated = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->updateMaterial($material);
+		foreach ($jsonData->data as $ativity) {
+			$result = $db->updateActivity($ativity);
 			if ($result) {
 				$itemsUpdated++;
 			}
@@ -201,33 +190,40 @@ function updateMaterials(){
 	}
 
 	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials updated: ".$itemsUpdated;
+	$response["message"] = "Total activities updated: ".$itemsUpdated;
 	$response["data"]=$jsonData->data;
 
 	echoResponse(201, $response);
 }
 
-function deleteMaterials () {
+function deleteActivities () {
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsDeleted = 0;
 
-	$db = new MaterialDbHandler();
+	$db = new ActivityDbHandler();
 	if (count($jsonData->data)==1){
-		$result = $db->deleteMaterial($jsonData->data->id);
+		$result = $db->deleteActivity($jsonData->data->id);
 		if ($result) {
 			$itemsDeleted = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->deleteMaterial($material->id);
+		foreach ($jsonData->data as $activity) {
+			$result = $db->deleteActivity($activity->id);
 			if ($result) {
 				$itemsDeleted++;
 			}
 		}
 	}
+
+	$response["error"] = $itemsDeleted==count($jsonData->data) ? false : true;
+	$response["message"] = "Total activities deleted: ".$itemsDeleted;
+	$response["data"]=$jsonData->data;
+
+	echoResponse(201, $response);
 }
 
 $app->run();
 ?>
+

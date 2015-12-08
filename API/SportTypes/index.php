@@ -1,7 +1,8 @@
 <?php
 
 require_once '../../include/DbHandlers/UserDbHandler.php';
-require_once '../../include/DbHandlers/MaterialDbHandler.php';
+require_once '../../include/DbHandlers/SportTypeDbHandler.php';
+
 require '../../libs/Slim/Slim.php';
  
 \Slim\Slim::registerAutoloader();
@@ -15,17 +16,27 @@ $user_id = NULL;
 // ------ web services -------------------------------------------------
 // ---------------------------------------------------------------------
 
-// Creating a new material in db
-$app->post('/materials', 'authenticate', 'createMaterials');
 
-// Listing all materials
-$app->get('/materials', 'authenticate', 'getAllMaterials');
+// Creating new sporTypes in db
+$app->post('/sportTypes', 'authenticate', 'createSportTypes');
 
-// Updating all materials included in payload
-$app->put('/materials', 'authenticate', 'updateMaterials');
+// Listing all sport types
+$app->get('/sportTypes', 'authenticate', 'getAllSportTypes');
 
-// Deleting a set of materials
-$app->delete('/materials', 'authenticate', 'deleteMaterials');
+// Find a Sport type by id
+$app->get('/sportType/:id', 'authenticate', 'getSportTypeById');
+
+// Updating all sport types included in payload
+$app->put('/sportTypes', 'authenticate', 'updateSportTypes');
+
+// Updating sport type by id
+$app->put('/sportType/:id', 'authenticate', 'updateSportTypeById');
+
+// Deleting a set of sport types
+$app->delete('/sportTypes', 'authenticate', 'deleteSportTypes');
+
+// Deleting sporttype
+$app->delete('/sportType/:id', 'authenticate', 'deleteSportTypeById');
 
 
 // ---------------------------------------------------------------------
@@ -122,111 +133,168 @@ function authenticate(\Slim\Route $route) {
 }
 
 
-// ------ Materials auxiliar functions ----------------------------------
-function createMaterials(){
+// ------ SportTypes auxiliar functions ----------------------------------
+function createSportTypes(){
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$itemsCreated = 0;
 
-	$db = new MaterialDbHandler();
+	$db = new SportTypeDbHandler();
 	if (count($jsonData->data)==1){
-		$id = $db->createMaterial($jsonData->data);
+		$id = $db->createSportType($jsonData->data);
 		if ($id != NULL){
 			$itemsCreated = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$id = $db->createMaterial($material);
+		foreach ($jsonData->data as $sportType) {
+			$id = $db->createSportType($sportType);
 			if ($id != NULL) {
 				$itemsCreated++;
-			}
+			}	
 		}
 	}
 
 	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials created: ".$itemsCreated;
+	$response["message"] = "Total sport types created: ".$itemsCreated;
 	$response["data"]=$jsonData->data;
 	echoResponse(201, $response);
 }
 
-function getAllMaterials() {
-	global $user_id;
-	$response = array();
-	$db = new MaterialDbHandler();
-	$result = $db->getMaterials();
-
-	$response["error"] = false;
-	$response["data"] = array();
-	while ($material = $result->fetch_assoc()) {
-		$tmp = array();
-		$tmp["id"] = $material["id"];
-		$tmp["alias"] = $material["alias"];
-		$tmp["name"] = $material["name"];
-		$tmp["brand"] = $material["brand"];
-		$tmp["parent_id"] = $material["parent_id"];
-		$tmp["total_time"] = $material["total_time"];
-		$tmp["total_distance"] = $material["total_distance"];
-		$tmp["status"] = $material["status"];
-		$tmp["created_at"] = $material["created_at"];
-		$tmp["purchase_date"] = $material["purchase_date"];
-		$tmp["max_time"] = $material["max_time"];
-		$tmp["max_distance"] = $material["max_distance"];
-		$tmp["comment"] = $material["comment"];
-		$tmp["initial_time"] = $material["initial_time"];
-		$tmp["initial_distance"] = $material["initial_distance"];
-		array_push($response["data"], $tmp);
-	}
-	echoResponse(200, $response);
+function getAllSportTypes() {
+            global $user_id;
+            $response = array();
+            $db = new SportTypeDbHandler();
+            $result = $db->getAllSportTypes();
+ 
+            $response["error"] = false;
+            $response["data"] = array();
+            while ($sportType = $result->fetch_assoc()) {
+                $tmp = array();
+                $tmp["id"] = $sportType["id"];
+                $tmp["name"] = $sportType["name"];
+                $tmp["comment"] = $sportType["comment"];
+                array_push($response["data"], $tmp);
+            }
+ 			$response["count"] = count($response["data"]);
+            echoResponse(200, $response);
 }
-
-function updateMaterials(){
+        
+function getSportTypeById($id) {
+            $response = array();
+            $response["data"] = array();
+            
+            $db = new SportTypeDbHandler();
+            $result = $db->getSportType($id);
+            if ($result != NULL) {
+                $response["error"] = false;
+                $response["message"] = "Sport type with id ".$id." found.";
+                $response["data"] = $result;
+            /*    $response["id"] = $result["id"];
+                $response["name"] = $result["name"]; */
+                echoResponse(200, $response);
+            } else {
+                $response["error"] = true;
+                $response["message"] = "Sport type with id ". $id . " was NOT found.";
+                echoResponse(404, $response);
+            }
+}
+        
+function updateSportTypes(){
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsUpdated = 0;
-
-	$db = new MaterialDbHandler();
+	
+	$db = new SportTypeDbHandler();
 	if (count($jsonData->data)==1){
-		$result = $db->updateMaterial($jsonData->data);
+		$result = $db->updateSportType($jsonData->data);
 		if ($result) {
-			$itemsUpdated = 1;
-		}
+				$itemsUpdated = 1;
+			}	
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->updateMaterial($material);
+		foreach ($jsonData->data as $sportType) {
+			$result = $db->updateSportType($sportType);
 			if ($result) {
 				$itemsUpdated++;
-			}
+			}	
 		}
 	}
 
 	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials updated: ".$itemsUpdated;
+	$response["message"] = "Total sport types updated: ".$itemsUpdated;
 	$response["data"]=$jsonData->data;
 
 	echoResponse(201, $response);
 }
 
-function deleteMaterials () {
+function updateSportTypeById ($id) {
+            
+	verifyRequiredParams(array('name'));
+	global $app;        
+	$name = $app->request->params('name');
+ 
+    $db = new SportTypeDbHandler();        
+    $response = array();
+    $user = array();
+    $user["id"]=$id;
+    $user["name"]=$name;
+    
+    $result = $db->updateSportType($user);
+           
+    if ($result) {           
+    	$response["error"] = false;
+        $response["message"] = "Sport type with id: ". $id ." was updated successfully";
+    } else {
+    	$response["error"] = true;
+        $response["message"] = "Sport type with id: ". $id ."was NOT updated because it was not found. Please try again!";
+    }
+    
+    echoResponse(200, $response);
+}
+        
+function deleteSportTypes () {
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsDeleted = 0;
-
-	$db = new MaterialDbHandler();
+	
+	$db = new SportTypeDbHandler();
 	if (count($jsonData->data)==1){
-		$result = $db->deleteMaterial($jsonData->data->id);
+		$result = $db->deleteSportType($jsonData->data->id);
 		if ($result) {
-			$itemsDeleted = 1;
-		}
+				$itemsDeleted = 1;
+			}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->deleteMaterial($material->id);
+		foreach ($jsonData->data as $sportType) {
+			$result = $db->deleteSportType($sportType->id);
 			if ($result) {
 				$itemsDeleted++;
-			}
+			}	
 		}
 	}
+
+	$response["error"] = $itemsDeleted==count($jsonData->data) ? false : true;
+	$response["message"] = "Total sport types deleted: ".$itemsDeleted;
+	$response["data"]=$jsonData->data;
+
+	echoResponse(201, $response);
+}
+
+function deleteSportTypeById ($id) {
+ 
+	$db = new SportTypeDbHandler();
+    $response = array();        
+    $result = $db->deleteSportType($id);
+           
+    if ($result) {
+                
+    	$response["error"] = false;       
+    	$response["message"] = "Sport type with id: ". $id ." deleted successfully";
+    } else {
+    	$response["error"] = true;
+    	$response["message"] = "Sport type with id: ". $id ." was NOT deleted because it was not found. Please try again!";
+    }        
+    echoResponse(200, $response);
 }
 
 $app->run();

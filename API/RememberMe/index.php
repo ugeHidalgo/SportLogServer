@@ -1,7 +1,8 @@
 <?php
 
 require_once '../../include/DbHandlers/UserDbHandler.php';
-require_once '../../include/DbHandlers/MaterialDbHandler.php';
+require_once '../../include/DbHandlers/RememberMeDbHandler.php';
+
 require '../../libs/Slim/Slim.php';
  
 \Slim\Slim::registerAutoloader();
@@ -15,18 +16,18 @@ $user_id = NULL;
 // ------ web services -------------------------------------------------
 // ---------------------------------------------------------------------
 
-// Creating a new material in db
-$app->post('/materials', 'authenticate', 'createMaterials');
 
-// Listing all materials
-$app->get('/materials', 'authenticate', 'getAllMaterials');
+// Creating new remember-me field in db
+$app->post('/rememberMe', 'authenticate', 'createNewRememberMeField');
 
-// Updating all materials included in payload
-$app->put('/materials', 'authenticate', 'updateMaterials');
+// Creating new remember-me field in db
+$app->get('/rememberMe/:id', 'authenticate', 'getRememberMeField');
 
-// Deleting a set of materials
-$app->delete('/materials', 'authenticate', 'deleteMaterials');
+// Updating remember me field in db
+$app->put('/rememberMe/:fieldName', 'authenticate', 'updateRememberMeField');
 
+// Deleting sporttype
+$app->delete('/rememberMe/:fieldName', 'authenticate', 'deleteRememberMeField');
 
 // ---------------------------------------------------------------------
 // ------ Auxiliar methods ---------------------------------------------
@@ -122,112 +123,88 @@ function authenticate(\Slim\Route $route) {
 }
 
 
-// ------ Materials auxiliar functions ----------------------------------
-function createMaterials(){
-	$request_body = file_get_contents('php://input');
-	$jsonData = json_decode($request_body);
-	$itemsCreated = 0;
+// ------ Remember me auxiliar functions ----------------------------------
+function createNewRememberMeField () {
+	
+	verifyRequiredParams(array('fieldName', 'fieldValue'));
+	$fieldName = $_REQUEST['fieldName'];
+	$fieldValue = $_REQUEST['fieldValue'];
+	
+	$response = array();
+	
+	$db = new RememberMeDbHandler();
+	$result = $db->createField($fieldName,$fieldValue);
 
-	$db = new MaterialDbHandler();
-	if (count($jsonData->data)==1){
-		$id = $db->createMaterial($jsonData->data);
-		if ($id != NULL){
-			$itemsCreated = 1;
-		}
-	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$id = $db->createMaterial($material);
-			if ($id != NULL) {
-				$itemsCreated++;
-			}
-		}
+	if ($result["message"] == FIELD_CREATED_SUCCESSFULLY) {
+		$response["error"] = false;
+		$response["message"] = "Campo para recordar registrado correctamente";
+		echoResponse(201, $response);
+	} else if ($result["message"] == FIELD_CREATE_FAILED) {
+		$response["error"] = true;
+		$response["message"] = "Ocurrió un error durante el proceso de registro. Vuelva a intentarlo.";
+		echoResponse(200, $response);
+	} else if ($result["message"] == FIELD_ALREADY_EXIST) {
+		$response["error"] = true;
+		$response["message"] = "Ya existe ese campo para recordar en la base de datos.";
+		echoResponse(200, $response);
 	}
-
-	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials created: ".$itemsCreated;
-	$response["data"]=$jsonData->data;
-	echoResponse(201, $response);
+}
+        
+function getRememberMeField ($fieldName) {
+	
+	$response = array();	
+	$db = new RememberMeDbHandler();
+	$result = $db->getFieldByFieldName($fieldName);
+	if ($result != NULL) {
+		$response["error"] = false;
+		$response["field"] = $result;
+		echoResponse(200, $response);
+	} else {
+		$response["error"] = true;
+		$response["message"] = "Field with name ". $fieldName . " was NOT found.";
+		echoResponse(404, $response);
+	}
 }
 
-function getAllMaterials() {
-	global $user_id;
+function updateRememberMeField ($fieldName){
+	
 	$response = array();
-	$db = new MaterialDbHandler();
-	$result = $db->getMaterials();
+	global $app;
+	verifyRequiredParams(array('fieldValue'));
+	$fieldValue = $app->request->params('fieldValue');
 
-	$response["error"] = false;
-	$response["data"] = array();
-	while ($material = $result->fetch_assoc()) {
-		$tmp = array();
-		$tmp["id"] = $material["id"];
-		$tmp["alias"] = $material["alias"];
-		$tmp["name"] = $material["name"];
-		$tmp["brand"] = $material["brand"];
-		$tmp["parent_id"] = $material["parent_id"];
-		$tmp["total_time"] = $material["total_time"];
-		$tmp["total_distance"] = $material["total_distance"];
-		$tmp["status"] = $material["status"];
-		$tmp["created_at"] = $material["created_at"];
-		$tmp["purchase_date"] = $material["purchase_date"];
-		$tmp["max_time"] = $material["max_time"];
-		$tmp["max_distance"] = $material["max_distance"];
-		$tmp["comment"] = $material["comment"];
-		$tmp["initial_time"] = $material["initial_time"];
-		$tmp["initial_distance"] = $material["initial_distance"];
-		array_push($response["data"], $tmp);
+	$db = new RememberMeDbHandler();	
+	$result = $db->updateRememberMeField($fieldName, $fieldValue);
+	 
+	if ($result) {
+		$response["error"] = false;
+		$response["message"] = "RememberMe field : ". $fieldName ." updated successfully";
+	} else {
+		$response["error"] = true;
+		$response["message"] = "RememberMe field : ". $fieldName ." was NOT updated because it was not found. Please try again!";
+	}
+	
+	echoResponse(200, $response);
+	
+}
+
+function deleteRememberMeField ($fieldName){
+	
+	$db = new RememberMeDbHandler();
+	$response = array();
+	$result = $db->deleteRememberMeField($fieldName);
+	 
+	if ($result) {
+	
+		$response["error"] = false;
+		$response["message"] = "Remember me field : ". $fieldName ." deleted successfully";
+	} else {
+		$response["error"] = true;
+		$response["message"] = "Remember me field : ". $fieldName ." was NOT deleted because it was not found. Please try again!";
 	}
 	echoResponse(200, $response);
 }
 
-function updateMaterials(){
-	$request_body = file_get_contents('php://input');
-	$jsonData = json_decode($request_body);
-	$result = false;
-	$itemsUpdated = 0;
-
-	$db = new MaterialDbHandler();
-	if (count($jsonData->data)==1){
-		$result = $db->updateMaterial($jsonData->data);
-		if ($result) {
-			$itemsUpdated = 1;
-		}
-	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->updateMaterial($material);
-			if ($result) {
-				$itemsUpdated++;
-			}
-		}
-	}
-
-	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials updated: ".$itemsUpdated;
-	$response["data"]=$jsonData->data;
-
-	echoResponse(201, $response);
-}
-
-function deleteMaterials () {
-	$request_body = file_get_contents('php://input');
-	$jsonData = json_decode($request_body);
-	$result = false;
-	$itemsDeleted = 0;
-
-	$db = new MaterialDbHandler();
-	if (count($jsonData->data)==1){
-		$result = $db->deleteMaterial($jsonData->data->id);
-		if ($result) {
-			$itemsDeleted = 1;
-		}
-	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->deleteMaterial($material->id);
-			if ($result) {
-				$itemsDeleted++;
-			}
-		}
-	}
-}
-
 $app->run();
 ?>
+
