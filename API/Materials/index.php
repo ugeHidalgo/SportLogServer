@@ -146,7 +146,11 @@ function createMaterials(){
 	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
 	$response["message"] = "Total materials created: ".$itemsCreated;
 	$response["data"]=$jsonData->data;
-	echoResponse(201, $response);
+	$errorCode = 201;
+	if ($response["error"]) {
+		$errorCode = 500;
+	}
+	echoResponse($errorCode, $response);
 }
 
 function getAllMaterials() {
@@ -203,8 +207,11 @@ function updateMaterials(){
 	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
 	$response["message"] = "Total materials updated: ".$itemsUpdated;
 	$response["data"]=$jsonData->data;
-
-	echoResponse(201, $response);
+	$errorCode = 201;
+	if ($response["error"]) {
+		$errorCode = 500;
+	}
+	echoResponse($errorCode, $response);
 }
 
 function deleteMaterials () {
