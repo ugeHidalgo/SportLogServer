@@ -1,7 +1,7 @@
 <?php
 
 require_once '../../include/DbHandlers/UserDbHandler.php';
-require_once '../../include/DbHandlers/ActivityDbHandler.php';
+require_once '../../include/DbHandlers/ActivityTypeDbHandler.php';
 
 require '../../libs/Slim/Slim.php';
  
@@ -16,17 +16,17 @@ $user_id = NULL;
 // ------ web services -------------------------------------------------
 // ---------------------------------------------------------------------
 
-// Creating activity in db
-$app->post('/activities', 'authenticate', 'createActivities');
+// Creating activity types in db
+$app->post('/activityTypes', 'authenticate', 'createActivityTypes');
 
-// Listing all activities
-$app->get('/activities', 'authenticate', 'getAllActivities');
+// Listing all activity types
+$app->get('/activityTypes', 'authenticate', 'getAllActivityTypes');
 
-// Updating all activities included in payload
-$app->put('/activities', 'authenticate', 'updateActivities');
+// Updating all activityTypes included in payload
+$app->put('/activityTypes', 'authenticate', 'updateActivityTypes');
 
-// Deleting a set of activities
-$app->delete('/activities', 'authenticate', 'deleteActivities');
+// Deleting a set of activity types
+$app->delete('/activityTypes', 'authenticate', 'deleteActivityTypes');
 
 
 // ---------------------------------------------------------------------
@@ -123,21 +123,21 @@ function authenticate(\Slim\Route $route) {
 }
 
 
-// ------ Activities auxiliar functions ----------------------------------
-function createActivities(){
+// ------ Activity types auxiliar functions ----------------------------------
+function createActivityTypes(){
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$itemsCreated = 0;
 
-	$db = new ActivityDbHandler();
+	$db = new ActivityTypeDbHandler();
 	if (count($jsonData->data)==1){
-		$id = $db->createActivity($jsonData->data);
+		$id = $db->createActivityType($jsonData->data);
 		if ($id != NULL){
 			$itemsCreated = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $activity) {
-			$id = $db->createActivity($activity);
+		foreach ($jsonData->data as $activityType) {
+			$id = $db->createActivityType($activityType);
 			if ($id != NULL) {
 				$itemsCreated++;
 			}
@@ -145,44 +145,44 @@ function createActivities(){
 	}
 
 	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total activities created: ".$itemsCreated;
+	$response["message"] = "Total activity types created: ".$itemsCreated;
 	$response["data"]=$jsonData->data;
 	echoResponse(201, $response);
 }
 
-function getAllActivities() {
+function getAllActivityTypes() {
 	global $user_id;
 	$response = array();
-	$db = new ActivityDbHandler();
-	$result = $db->getActivities();
+	$db = new ActivityTypeDbHandler();
+	$result = $db->getActivityTypes();
 	
 	$response["error"] = false;
 	$response["data"] = array();
-    while ($activity = $result->fetch_assoc()) {
+    while ($activityType = $result->fetch_assoc()) {
     	$tmp = array();
-        $tmp["id"] = $activity["id"];
-        $tmp["name"] = $activity["name"];
-        $tmp["sportType_id"] = $activity["sportType_id"];
+        $tmp["id"] = $activityType["id"];
+        $tmp["name"] = $activityType["name"];
+        $tmp["sportType_id"] = $activityType["sportType_id"];
         array_push($response["data"], $tmp);
     } 
 	echoResponse(200, $response);
 }
 
-function updateActivities(){
+function updateActivityTypes(){
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsUpdated = 0;
 
-	$db = new ActivityDbHandler();
+	$db = new ActivityTypeDbHandler();
 	if (count($jsonData->data)==1){
-		$result = $db->updateActivity($jsonData->data);
+		$result = $db->updateActivityType($jsonData->data);
 		if ($result) {
 			$itemsUpdated = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $ativity) {
-			$result = $db->updateActivity($ativity);
+		foreach ($jsonData->data as $activityType) {
+			$result = $db->updateActivityType($activityType);
 			if ($result) {
 				$itemsUpdated++;
 			}
@@ -190,27 +190,27 @@ function updateActivities(){
 	}
 
 	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total activities updated: ".$itemsUpdated;
+	$response["message"] = "Total activity types updated: ".$itemsUpdated;
 	$response["data"]=$jsonData->data;
 
 	echoResponse(201, $response);
 }
 
-function deleteActivities () {
+function deleteActivityTypes () {
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsDeleted = 0;
 
-	$db = new ActivityDbHandler();
+	$db = new ActivityTypeDbHandler();
 	if (count($jsonData->data)==1){
-		$result = $db->deleteActivity($jsonData->data->id);
+		$result = $db->deleteActivityType($jsonData->data->id);
 		if ($result) {
 			$itemsDeleted = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $activity) {
-			$result = $db->deleteActivity($activity->id);
+		foreach ($jsonData->data as $activityType) {
+			$result = $db->deleteActivity($activityType->id);
 			if ($result) {
 				$itemsDeleted++;
 			}
@@ -218,7 +218,7 @@ function deleteActivities () {
 	}
 
 	$response["error"] = $itemsDeleted==count($jsonData->data) ? false : true;
-	$response["message"] = "Total activities deleted: ".$itemsDeleted;
+	$response["message"] = "Total activity types deleted: ".$itemsDeleted;
 	$response["data"]=$jsonData->data;
 
 	echoResponse(201, $response);
