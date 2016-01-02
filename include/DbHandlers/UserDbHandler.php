@@ -173,6 +173,5 @@ class USerDbHandler {
     private function generateApiKey() {
         return md5(uniqid(rand(), true));
     }
-}
- 
+} 
 ?>

@@ -17,13 +17,13 @@ class SessionDbHandler {
 	public function createSession($session) {
 		$stmt = $this->conn->prepare(
 				"INSERT INTO sessions ". 
-				"(userId,date,sessionTime,sessionDist,sessionTypeId) ".
-				"VALUES(?,?,?,?,?)");
-		$stmt->bind_param("sssss", 
+				"(userId,name, date,sessionTime,sessionDist) ".
+				"VALUES(?,?,?,?,?,?)");
+		$stmt->bind_param("ssssss", 
+				$material->name,
 				$material->date,
 				$material->sessionTime,
-				$material->sessionDist,
-				$material->sessionTypeId);
+				$material->sessionDist);
 		$result = $stmt->execute();
 		$stmt->close();
 	
@@ -39,9 +39,9 @@ class SessionDbHandler {
 	}
 	
 	// Fetching all sessions
-	public function getMaterials($userId) {
-		$stmt = $this->conn->prepare("SELECT * FROM sessions WHERE userId=?");
-		$stmt->bind_param("i", $userId);
+	public function getSessions() {
+		$stmt = $this->conn->prepare("SELECT * FROM sessions"); //WHERE userId=?");
+		//$stmt->bind_param("i", $userId);
 		$stmt->execute();
 		$sessions = $stmt->get_result();
 		$stmt->close();

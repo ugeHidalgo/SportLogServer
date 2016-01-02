@@ -2,8 +2,9 @@
 
 require_once '../../include/DbHandlers/UserDbHandler.php';
 require_once '../../include/DbHandlers/SessionDbHandler.php';
+
 require '../../libs/Slim/Slim.php';
- 
+
 \Slim\Slim::registerAutoloader();
  
 $app = new \Slim\Slim();
@@ -16,16 +17,16 @@ $user_id = NULL;
 // ---------------------------------------------------------------------
 
 // Creating a new session in db
-$app->post('/sessions', 'authenticate', 'createSession');
+//$app->post('/sessions', 'authenticate', 'createSession');
 
-// Listing all sessions from a given user
-$app->get('/sessions/:userId', 'authenticate', 'getAllSessions');
+// Listing all sessions from a given user //TODO: filter by user. 
+$app->get('/sessions', 'authenticate', 'getSessions');
 
 // Updating all sessions included in payload
-$app->put('/sessions', 'authenticate', 'updateSessions');
+//$app->put('/sessions', 'authenticate', 'updateSessions');
 
 // Deleting a set of sessions
-$app->delete('/sessions', 'authenticate', 'deleteSessions');
+//$app->delete('/sessions', 'authenticate', 'deleteSessions');
 
 
 // ---------------------------------------------------------------------
@@ -71,8 +72,7 @@ function validateEmail($email) {
         echoResponse(400, $response);
         $app->stop();
     }
-}
- 
+} 
 // Echoing json response to client
 function echoResponse($status_code, $response) {
     $app = \Slim\Slim::getInstance();
@@ -123,20 +123,20 @@ function authenticate(\Slim\Route $route) {
 
 
 // ------ Sessions auxiliar functions ----------------------------------
-function createSessions(){
-/*	$request_body = file_get_contents('php://input');
+/*function createSessions(){
+	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$itemsCreated = 0;
 
-	$db = new MaterialDbHandler();
+	$db = new SessionDbHandler();
 	if (count($jsonData->data)==1){
-		$id = $db->createMaterial($jsonData->data);
+		$id = $db->createSession($jsonData->data);
 		if ($id != NULL){
 			$itemsCreated = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$id = $db->createMaterial($material);
+		foreach ($jsonData->data as $session) {
+			$id = $db->createSession($session);
 			if ($id != NULL) {
 				$itemsCreated++;
 			}
@@ -144,37 +144,37 @@ function createSessions(){
 	}
 
 	$response["error"] = $itemsCreated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials created: ".$itemsCreated;
+	$response["message"] = "Total sessions created: ".$itemsCreated;
 	$response["data"]=$jsonData->data;
 	$errorCode = 201;
 	if ($response["error"]) {
 		$errorCode = 500;
 	}
-	echoResponse($errorCode, $response);*/
-}
+	echoResponse($errorCode, $response);
+}*/
 
-function getAllSessionss($userId) {
+function getSessions() {
 	$response = array();
 	$db = new SessionDbHandler();
-	$result = $db->getSessions($userId);
+	$result = $db->getSessions();
 
 	$response["error"] = false;
 	$response["data"] = array();
 	while ($session = $result->fetch_assoc()) {
 		$tmp = array();
 		$tmp["id"] = $session["id"];
+		$tmp["name"] = $session["name"];
 		$tmp["userId"] = $session["userId"];
 		$tmp["date"] = $session["date"];
 		$tmp["sessionTime"] = $session["sessionTime"];
 		$tmp["sessionDist"] = $session["sessionDist"];
-		$tmp["sessionTypeId"] = $session["sessionTypeId"];
 		array_push($response["data"], $tmp);
 	}
 	echoResponse(200, $response);
 }
 
-function updateSessions(){
-/*	$request_body = file_get_contents('php://input');
+/*function updateSessions(){
+	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsUpdated = 0;
@@ -201,11 +201,11 @@ function updateSessions(){
 	if ($response["error"]) {
 		$errorCode = 500;
 	}
-	echoResponse($errorCode, $response);*/
-}
+	echoResponse($errorCode, $response);
+}*/
 
-function deleteSessions () {
-/*	$request_body = file_get_contents('php://input');
+/*function deleteSessions () {
+	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsDeleted = 0;
@@ -223,8 +223,8 @@ function deleteSessions () {
 				$itemsDeleted++;
 			}
 		}
-	}*/
-}
+	}
+}*/
 
 $app->run();
-?
+?>
