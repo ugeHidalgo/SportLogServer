@@ -17,13 +17,14 @@ class SessionDbHandler {
 	public function createSession($session) {
 		$stmt = $this->conn->prepare(
 				"INSERT INTO sessions ". 
-				"(userId,name, date,sessionTime,sessionDist) ".
-				"VALUES(?,?,?,?,?,?)");
-		$stmt->bind_param("ssssss", 
-				$material->name,
-				$material->date,
-				$material->sessionTime,
-				$material->sessionDist);
+				"(userId,name,date,sessionTime,sessionDist) ".
+				"VALUES(?,?,?,?,?)");
+		$stmt->bind_param("sssss", 
+				$session->userId,
+				$session->name,
+				$session->date,
+				$session->sessionTime,
+				$session->sessionDist);
 		$result = $stmt->execute();
 		$stmt->close();
 	
@@ -50,29 +51,22 @@ class SessionDbHandler {
 	
 	// Updating a session
 	public function updateSession($session) {
-/*		$stmt = $this->conn->prepare(
-				"UPDATE materials ".
-				"SET alias=? ,name=?, brand=?, parent_id=?, ".
-				    "status=? ,purchase_date=?, max_time=?, max_distance=?, ".
-					"comment=? ,initial_time=? ,initial_distance=? ".
+		$stmt = $this->conn->prepare(
+				"UPDATE sessions ".
+				"SET name=?, date=?, userId=?, ".
+				    "sessionDist=? ,sessionTime=?".
 				"WHERE id=?");
-		$stmt->bind_param("sssiissssssi", 
-				$material->alias,
-				$material->name,
-				$material->brand,
-				$material->parent_id,
-				$material->status,
-				$material->purchase_date,
-				$material->max_time,
-				$material->max_distance,
-				$material->comment,
-				$material->initial_time,
-				$material->initial_distance,
-				$material->id);
+		$stmt->bind_param("sssssi",
+				$session->name,
+				$session->date,
+				$session->userId,
+				$session->sessionDist,
+				$session->sessionTime,
+				$session->id);
 		$stmt->execute();
 		$num_affected_rows = $stmt->affected_rows;
 		$stmt->close();
-		return $num_affected_rows > 0; */
+		return $num_affected_rows > 0; 
 	}
 	
 	// Deleting a session

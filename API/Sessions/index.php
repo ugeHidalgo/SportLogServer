@@ -17,16 +17,16 @@ $user_id = NULL;
 // ---------------------------------------------------------------------
 
 // Creating a new session in db
-//$app->post('/sessions', 'authenticate', 'createSession');
+$app->post('/sessions', 'authenticate', 'createSessions');
 
 // Listing all sessions from a given user //TODO: filter by user. 
 $app->get('/sessions', 'authenticate', 'getSessions');
 
 // Updating all sessions included in payload
-//$app->put('/sessions', 'authenticate', 'updateSessions');
+$app->put('/sessions', 'authenticate', 'updateSessions');
 
 // Deleting a set of sessions
-//$app->delete('/sessions', 'authenticate', 'deleteSessions');
+$app->delete('/sessions', 'authenticate', 'deleteSessions');
 
 
 // ---------------------------------------------------------------------
@@ -123,7 +123,7 @@ function authenticate(\Slim\Route $route) {
 
 
 // ------ Sessions auxiliar functions ----------------------------------
-/*function createSessions(){
+function createSessions(){
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$itemsCreated = 0;
@@ -151,7 +151,7 @@ function authenticate(\Slim\Route $route) {
 		$errorCode = 500;
 	}
 	echoResponse($errorCode, $response);
-}*/
+}
 
 function getSessions() {
 	$response = array();
@@ -173,21 +173,21 @@ function getSessions() {
 	echoResponse(200, $response);
 }
 
-/*function updateSessions(){
+function updateSessions(){
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsUpdated = 0;
 
-	$db = new MaterialDbHandler();
+	$db = new SessionDbHandler();
 	if (count($jsonData->data)==1){
-		$result = $db->updateMaterial($jsonData->data);
+		$result = $db->updateSession($jsonData->data);
 		if ($result) {
 			$itemsUpdated = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->updateMaterial($material);
+		foreach ($jsonData->data as $session) {
+			$result = $db->updateSession($session);
 			if ($result) {
 				$itemsUpdated++;
 			}
@@ -195,36 +195,36 @@ function getSessions() {
 	}
 
 	$response["error"] = $itemsUpdated==count($jsonData->data) ? false : true;
-	$response["message"] = "Total materials updated: ".$itemsUpdated;
+	$response["message"] = "Total sessions updated: ".$itemsUpdated;
 	$response["data"]=$jsonData->data;
 	$errorCode = 201;
 	if ($response["error"]) {
 		$errorCode = 500;
 	}
 	echoResponse($errorCode, $response);
-}*/
+}
 
-/*function deleteSessions () {
+function deleteSessions () {
 	$request_body = file_get_contents('php://input');
 	$jsonData = json_decode($request_body);
 	$result = false;
 	$itemsDeleted = 0;
 
-	$db = new MaterialDbHandler();
+	$db = new SessionDbHandler();
 	if (count($jsonData->data)==1){
-		$result = $db->deleteMaterial($jsonData->data->id);
+		$result = $db->deleteSession($jsonData->data->id);
 		if ($result) {
 			$itemsDeleted = 1;
 		}
 	} else if (count($jsonData->data)>1) {
-		foreach ($jsonData->data as $material) {
-			$result = $db->deleteMaterial($material->id);
+		foreach ($jsonData->data as $session) {
+			$result = $db->deleteSession($session->id);
 			if ($result) {
 				$itemsDeleted++;
 			}
 		}
 	}
-}*/
+}
 
 $app->run();
 ?>
