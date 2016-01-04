@@ -157,7 +157,7 @@ function getAllMaterials() {
 	global $user_id;
 	$response = array();
 	$db = new MaterialDbHandler();
-	$result = $db->getMaterials();
+	$result = $db->getMaterials($user_id);
 
 	$response["error"] = false;
 	$response["data"] = array();
@@ -178,6 +178,7 @@ function getAllMaterials() {
 		$tmp["comment"] = $material["comment"];
 		$tmp["initial_time"] = $material["initial_time"];
 		$tmp["initial_distance"] = $material["initial_distance"];
+		$tmp["userId"] = $material["userId"];
 		array_push($response["data"], $tmp);
 	}
 	echoResponse(200, $response);

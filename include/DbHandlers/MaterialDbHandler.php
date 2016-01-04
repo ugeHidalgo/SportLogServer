@@ -18,9 +18,9 @@ class MaterialDbHandler {
 		$stmt = $this->conn->prepare(
 				"INSERT INTO materials ". 
 				"(alias,name,brand,parent_id,status,purchase_date,max_time,max_distance,".
-				"comment,initial_time,initial_distance) ".
-				"VALUES(?,?,?,?,?,?,?,?,?,?,?)");
-		$stmt->bind_param("sssiissssss", 
+				"comment,initial_time,initial_distance,userId) ".
+				"VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+		$stmt->bind_param("sssiissssssi", 
 				$material->alias,
 				$material->name,
 				$material->brand,
@@ -31,7 +31,8 @@ class MaterialDbHandler {
 				$material->max_distance,
 				$material->comment,
 				$material->initial_time,
-				$material->initial_distance);
+				$material->initial_distance,
+				$material->userId);
 		$result = $stmt->execute();
 		$stmt->close();
 	
@@ -47,8 +48,9 @@ class MaterialDbHandler {
 	}
 	
 	// Fetching all materials
-	public function getMaterials() {
-		$stmt = $this->conn->prepare("SELECT * FROM materials");
+	public function getMaterials($userId) {
+		$stmt = $this->conn->prepare("SELECT * FROM materials WHERE userId=?");
+		$stmt->bind_param("i", $userId);
 		$stmt->execute();
 		$materials = $stmt->get_result();
 		$stmt->close();
@@ -61,9 +63,9 @@ class MaterialDbHandler {
 				"UPDATE materials ".
 				"SET alias=? ,name=?, brand=?, parent_id=?, ".
 				    "status=? ,purchase_date=?, max_time=?, max_distance=?, ".
-					"comment=? ,initial_time=? ,initial_distance=? ".
+					"comment=? ,initial_time=? ,initial_distance=?, userId=?".
 				"WHERE id=?");
-		$stmt->bind_param("sssiissssssi", 
+		$stmt->bind_param("sssiissssssii", 
 				$material->alias,
 				$material->name,
 				$material->brand,
@@ -75,6 +77,7 @@ class MaterialDbHandler {
 				$material->comment,
 				$material->initial_time,
 				$material->initial_distance,
+				$material->userId,
 				$material->id);
 		$stmt->execute();
 		$num_affected_rows = $stmt->affected_rows;

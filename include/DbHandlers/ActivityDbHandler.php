@@ -52,9 +52,9 @@ class ActivityDbHandler {
 	}
 	
 	// Fetching all activities
-	public function getActivities() {
-		$stmt = $this->conn->prepare("SELECT * FROM activities"); //WHERE userId=?");
-		//$stmt->bind_param("i", $userId);
+	public function getActivities($userId) {
+		$stmt = $this->conn->prepare("SELECT * FROM activities WHERE userId=?");
+		$stmt->bind_param("i", $userId);
 		$stmt->execute();
 		$activities = $stmt->get_result();
 		$stmt->close();

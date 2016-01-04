@@ -19,7 +19,7 @@ $user_id = NULL;
 // Creating a new session in db
 $app->post('/sessions', 'authenticate', 'createSessions');
 
-// Listing all sessions from a given user //TODO: filter by user. 
+// Listing all sessions from a given user 
 $app->get('/sessions', 'authenticate', 'getSessions');
 
 // Updating all sessions included in payload
@@ -154,9 +154,10 @@ function createSessions(){
 }
 
 function getSessions() {
+	global $user_id;
 	$response = array();
 	$db = new SessionDbHandler();
-	$result = $db->getSessions();
+	$result = $db->getSessions($user_id);
 
 	$response["error"] = false;
 	$response["data"] = array();

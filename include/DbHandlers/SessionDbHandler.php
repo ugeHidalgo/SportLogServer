@@ -40,9 +40,9 @@ class SessionDbHandler {
 	}
 	
 	// Fetching all sessions
-	public function getSessions() {
-		$stmt = $this->conn->prepare("SELECT * FROM sessions"); //WHERE userId=?");
-		//$stmt->bind_param("i", $userId);
+	public function getSessions($userId) {
+		$stmt = $this->conn->prepare("SELECT * FROM sessions WHERE userId=?");
+		$stmt->bind_param("i", $userId);
 		$stmt->execute();
 		$sessions = $stmt->get_result();
 		$stmt->close();

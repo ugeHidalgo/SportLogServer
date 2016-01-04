@@ -154,9 +154,10 @@ function createActivities(){
 }
 
 function getActivities() {
+	global $user_id;
 	$response = array();
 	$db = new ActivityDbHandler();
-	$result = $db->getActivities();
+	$result = $db->getActivities($user_id);
 
 	$response["error"] = false;
 	$response["data"] = array();
