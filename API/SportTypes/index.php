@@ -20,7 +20,7 @@ $user_id = NULL;
 // Creating new sporTypes in db
 $app->post('/sportTypes', 'authenticate', 'createSportTypes');
 
-// Listing all sport types
+// Listing all sport types for a given user
 $app->get('/sportTypes', 'authenticate', 'getAllSportTypes');
 
 // Find a Sport type by id
@@ -161,10 +161,11 @@ function createSportTypes(){
 }
 
 function getAllSportTypes() {
-            global $user_id;
+			global $user_id;
+
             $response = array();
             $db = new SportTypeDbHandler();
-            $result = $db->getAllSportTypes();
+            $result = $db->getAllSportTypes($user_id);
  
             $response["error"] = false;
             $response["data"] = array();
@@ -173,6 +174,7 @@ function getAllSportTypes() {
                 $tmp["id"] = $sportType["id"];
                 $tmp["name"] = $sportType["name"];
                 $tmp["comment"] = $sportType["comment"];
+                $tmp["userId"] = $sportType["userId"];
                 array_push($response["data"], $tmp);
             }
  			$response["count"] = count($response["data"]);

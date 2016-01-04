@@ -15,8 +15,8 @@ class ActivityTypeDbHandler {
 	
 	// Creating new activitytype
 	public function createActivityType($activityType) {
-		$stmt = $this->conn->prepare("INSERT INTO activityTypes(name,sportType_id,comment) VALUES(?,?,?)");
-		$stmt->bind_param("sss", $activityType->name, $activityType->sportType_id, $activityType->comment);
+		$stmt = $this->conn->prepare("INSERT INTO activityTypes(name, sportType_id, comment, userId) VALUES(?,?,?,?)");
+		$stmt->bind_param("sisi", $activityType->name, $activityType->sportType_id, $activityType->comment, $activityType->userId);
 		$result = $stmt->execute();
 		$stmt->close();
 	
@@ -32,8 +32,9 @@ class ActivityTypeDbHandler {
 	}
 	
 	// Fetching all activityTypes
-	public function getActivityTypes() {
-		$stmt = $this->conn->prepare("SELECT * FROM activityTypes");
+	public function getActivityTypes($userId) {
+		$stmt = $this->conn->prepare("SELECT * FROM activityTypes WHERE userId=?");
+		$stmt->bind_param("i", $userId);
 		$stmt->execute();
 		$activityTypes = $stmt->get_result();
 		$stmt->close();
@@ -42,8 +43,9 @@ class ActivityTypeDbHandler {
 	
 	// Updating an activityType
 	public function updateActivityTypes($activityType) {
-		$stmt = $this->conn->prepare("UPDATE activityTypes SET name=?, sportType_id=? comment=? WHERE id=?");
-		$stmt->bind_param("sssi", $activityType->name, $activityType->sportType_id, $activityType->comment, $activityType->id);
+		$stmt = $this->conn->prepare("UPDATE activityTypes SET name=?, sportType_id=?, comment=?, userId=? WHERE id=?");
+		$stmt->bind_param("sssii", $activityType->name, $activityType->sportType_id, 
+								   $activityType->comment, $activityType->userId, $activityType->id);
 		$stmt->execute();
 		$num_affected_rows = $stmt->affected_rows;
 		$stmt->close();

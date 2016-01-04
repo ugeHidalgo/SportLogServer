@@ -154,7 +154,7 @@ function getAllActivityTypes() {
 	global $user_id;
 	$response = array();
 	$db = new ActivityTypeDbHandler();
-	$result = $db->getActivityTypes();
+	$result = $db->getActivityTypes($user_id);
 	
 	$response["error"] = false;
 	$response["data"] = array();
@@ -163,6 +163,7 @@ function getAllActivityTypes() {
         $tmp["id"] = $activityType["id"];
         $tmp["name"] = $activityType["name"];
         $tmp["sportType_id"] = $activityType["sportType_id"];
+        $tmp["userId"] = $activityType["userId"];
         array_push($response["data"], $tmp);
     } 
 	echoResponse(200, $response);

@@ -16,8 +16,8 @@ class SportTypeDbHandler {
  
     // Creating new sportType
     public function createSportType($sportType) {        
-        $stmt = $this->conn->prepare("INSERT INTO sportTypes(name,comment) VALUES(?,?)");
-        $stmt->bind_param("ss", $sportType->name, $sportType->comment);
+        $stmt = $this->conn->prepare("INSERT INTO sportTypes(name, comment, userId) VALUES(?,?,?)");
+        $stmt->bind_param("ssi", $sportType->name, $sportType->comment, $sportType->userId);
         $result = $stmt->execute();
         $stmt->close();
         
@@ -34,7 +34,7 @@ class SportTypeDbHandler {
  
     // Fetching single sportType
     public function getSportType($id) {
-        $stmt = $this->conn->prepare("SELECT t.* from sportTypes t WHERE t.id = ?");
+        $stmt = $this->conn->prepare("SELECT * from sportTypes WHERE t.id = ?");
         $stmt->bind_param("i", $id);
         if ($stmt->execute()) {
             $sportType = $stmt->get_result()->fetch_assoc();
@@ -50,8 +50,9 @@ class SportTypeDbHandler {
     }
  
     // Fetching all sportTypes
-    public function getAllSportTypes() {
-        $stmt = $this->conn->prepare("SELECT t.* FROM sportTypes t");
+    public function getAllSportTypes($userId) {
+        $stmt = $this->conn->prepare("SELECT * FROM sportTypes WHERE userId=?");
+        $stmt->bind_param("i", $userId);
         $stmt->execute();
         $sportTypes = $stmt->get_result();
         $stmt->close();
@@ -60,8 +61,8 @@ class SportTypeDbHandler {
  
     // Updating SportType
     public function updateSportType($sportType) {
-        $stmt = $this->conn->prepare("UPDATE sportTypes SET name=?, comment=? WHERE id=?");
-        $stmt->bind_param("ssi", $sportType->name, $sportType->comment, $sportType->id);
+        $stmt = $this->conn->prepare("UPDATE sportTypes SET name=?, comment=?, userId=? WHERE id=?");
+        $stmt->bind_param("ssii", $sportType->name, $sportType->comment, $sportType->userId, $sportType->id );
         $stmt->execute();
         $num_affected_rows = $stmt->affected_rows;
         $stmt->close();
