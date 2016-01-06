@@ -19,7 +19,7 @@ class MaterialDbHandler {
 				"INSERT INTO materials ". 
 				"(alias,name,brand,parent_id,status,purchase_date,max_time,max_distance,".
 				"comment,initial_time,initial_distance,userId) ".
-				"VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+				"VALUES(?,?,?,?,?,FROM_UNIXTIME(?),?,?,?,?,?,?)");
 		$stmt->bind_param("sssiissssssi", 
 				$material->alias,
 				$material->name,
@@ -62,8 +62,8 @@ class MaterialDbHandler {
 		$stmt = $this->conn->prepare(
 				"UPDATE materials ".
 				"SET alias=? ,name=?, brand=?, parent_id=?, ".
-				    "status=? ,purchase_date=?, max_time=?, max_distance=?, ".
-					"comment=? ,initial_time=? ,initial_distance=?, userId=?".
+				    "status=? ,purchase_date=FROM_UNIXTIME(?), max_time=?, max_distance=?, ".
+					"comment=? ,initial_time=? ,initial_distance=?, userId=? ".
 				"WHERE id=?");
 		$stmt->bind_param("sssiissssssii", 
 				$material->alias,

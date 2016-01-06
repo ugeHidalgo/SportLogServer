@@ -64,7 +64,7 @@ class ActivityDbHandler {
 	// Updating a activity
 	public function updateActivity($activity) {
 		$stmt = $this->conn->prepare(
-				"UPDATE sessions ".
+				"UPDATE activities ".
 				"SET userId=?, sessionId=?, activityTypeId=?, ".
 				"activityTime=?, activityDist=?, ".
 				"avgHRate=?, maxHRate=?, minHRate=?, ".

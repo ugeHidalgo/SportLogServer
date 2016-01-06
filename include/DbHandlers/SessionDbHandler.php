@@ -18,7 +18,7 @@ class SessionDbHandler {
 		$stmt = $this->conn->prepare(
 				"INSERT INTO sessions ". 
 				"(userId,name,date,sessionTime,sessionDist) ".
-				"VALUES(?,?,?,?,?)");
+				"VALUES(?,?,FROM_UNIXTIME(?),?,?)");
 		$stmt->bind_param("sssss", 
 				$session->userId,
 				$session->name,
@@ -53,10 +53,10 @@ class SessionDbHandler {
 	public function updateSession($session) {
 		$stmt = $this->conn->prepare(
 				"UPDATE sessions ".
-				"SET name=?, date=?, userId=?, ".
-				    "sessionDist=? ,sessionTime=?".
+				"SET name=?, date=FROM_UNIXTIME(?), userId=?, ".
+				    "sessionDist=?, sessionTime=? ".
 				"WHERE id=?");
-		$stmt->bind_param("sssssi",
+		$stmt->bind_param("sisssi",
 				$session->name,
 				$session->date,
 				$session->userId,
